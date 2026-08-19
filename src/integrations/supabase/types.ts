@@ -684,6 +684,7 @@ export type Database = {
         Args: { _roles: Database["public"]["Enums"]["app_role"][] }
         Returns: boolean
       }
+      seed_demo_data: { Args: never; Returns: Json }
       setup_business: {
         Args: { p_address?: string; p_name: string; p_phone?: string }
         Returns: string
