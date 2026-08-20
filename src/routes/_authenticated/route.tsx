@@ -42,11 +42,10 @@ function BusinessSetup() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("setup_business", {
-        p_name: name,
-        p_phone: phone || undefined,
-        p_address: address || undefined,
-      });
+      const args: { p_name: string; p_phone?: string; p_address?: string } = { p_name: name };
+      if (phone.trim()) args.p_phone = phone.trim();
+      if (address.trim()) args.p_address = address.trim();
+      const { error } = await supabase.rpc("setup_business", args);
       if (error) throw error;
     },
     onSuccess: () => {
