@@ -45,7 +45,7 @@ export function VoiceSheet({ open, onOpenChange }: { open: boolean; onOpenChange
           transcript: text,
           language: lang,
           intent: result.intent,
-          structured_action: result as unknown as Record<string, unknown>,
+          structured_action: JSON.parse(JSON.stringify(result)),
           status: "AWAITING_CONFIRMATION",
         });
       }
@@ -102,9 +102,9 @@ export function VoiceSheet({ open, onOpenChange }: { open: boolean; onOpenChange
         return t("saved");
       }
       if (a.intent === "UPDATE_PRODUCT") {
-        const patch: Record<string, number> = {};
-        if (a.selling_price) patch["selling_price"] = a.selling_price;
-        if (a.purchase_price) patch["purchase_price"] = a.purchase_price;
+        const patch: { selling_price?: number; purchase_price?: number } = {};
+        if (a.selling_price) patch.selling_price = a.selling_price;
+        if (a.purchase_price) patch.purchase_price = a.purchase_price;
         const { error } = await supabase.from("products").update(patch).eq("id", found.id);
         if (error) throw error;
         return t("saved");
