@@ -44,8 +44,8 @@ function BusinessSetup() {
     mutationFn: async () => {
       const { error } = await supabase.rpc("setup_business", {
         p_name: name,
-        p_phone: phone || null,
-        p_address: address || null,
+        p_phone: phone || undefined,
+        p_address: address || undefined,
       });
       if (error) throw error;
     },
