@@ -3,6 +3,14 @@ import { createServerFn } from "@tanstack/react-start";
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3.5-flash";
 
+export type VoiceItem = {
+  product?: string;
+  quantity?: number;
+  unit?: string;
+  purchase_price?: number;
+  selling_price?: number;
+};
+
 export type VoiceAction = {
   intent:
     | "CREATE_PRODUCT"
@@ -11,11 +19,10 @@ export type VoiceAction = {
     | "GET_STOCK"
     | "UPDATE_PRODUCT"
     | "UNKNOWN";
-  product?: string;
-  quantity?: number;
-  purchase_price?: number;
-  selling_price?: number;
-  unit?: string;
+  items: VoiceItem[];
+  supplier?: string;
+  customer?: string;
+  date?: string;
   confidence?: number;
   clarification?: string;
 };
@@ -23,16 +30,17 @@ export type VoiceAction = {
 const SYSTEM = `You convert a shopkeeper's spoken sentence (Kinyarwanda or English) into ONE structured business command for a Rwandan shop app.
 Return ONLY compact JSON, no markdown, with keys:
 intent: one of CREATE_PRODUCT | CREATE_SALE | CREATE_PURCHASE | GET_STOCK | UPDATE_PRODUCT | UNKNOWN
-product: product name as spoken (string, optional)
-quantity: number (optional)
-purchase_price: number RWF (optional)
-selling_price: number RWF (optional)
-unit: string (optional)
+items: array of { product: string, quantity: number, unit?: string, purchase_price?: number, selling_price?: number } — one entry per product mentioned (a sentence can mention several)
+supplier: supplier/company name if mentioned (optional)
+customer: customer name if mentioned (optional)
+date: YYYY-MM-DD if a date is mentioned (optional)
 confidence: 0..1
 clarification: short question in the same language if you are unsure (optional)
-Kinyarwanda hints: "ongeramo"=add product, "ndagurishije"/"nagurishije"=sale, "naguze"=purchase, "mfite zingahe"=check stock, "hindura igiciro"=update price.
+Match product names to the known product list when possible, otherwise keep them as spoken.
+Kinyarwanda hints: "ongeramo"=add product, "ndagurishije"/"nagurishije"/"nacuruje"=sale, "naguze"=purchase, "mfite zingahe"=check stock, "hindura igiciro"=update price.
 Kinyarwanda numbers: rimwe=1, ebyiri=2, bitatu=3, bine=4, bitanu=5, esheshatu=6, birindwi=7, umunani=8, icyenda=9, icumi=10, makumyabiri=20.
-If the sentence is not a business command, use UNKNOWN with a clarification.`;
+If the sentence is not a business command, use UNKNOWN with a clarification and an empty items array.`;
+
 
 async function callGateway(body: unknown): Promise<string> {
   const key = process.env["LOVABLE_API_KEY"];

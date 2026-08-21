@@ -399,6 +399,7 @@ export type Database = {
       purchases: {
         Row: {
           business_id: string
+          client_token: string | null
           created_at: string
           created_by: string
           id: string
@@ -412,6 +413,7 @@ export type Database = {
         }
         Insert: {
           business_id: string
+          client_token?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -425,6 +427,7 @@ export type Database = {
         }
         Update: {
           business_id?: string
+          client_token?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -511,6 +514,7 @@ export type Database = {
       sales: {
         Row: {
           business_id: string
+          client_token: string | null
           created_at: string
           customer_name: string | null
           id: string
@@ -521,6 +525,7 @@ export type Database = {
         }
         Insert: {
           business_id: string
+          client_token?: string | null
           created_at?: string
           customer_name?: string | null
           id?: string
@@ -531,6 +536,7 @@ export type Database = {
         }
         Update: {
           business_id?: string
+          client_token?: string | null
           created_at?: string
           customer_name?: string | null
           id?: string
@@ -654,26 +660,51 @@ export type Database = {
         }
         Returns: number
       }
-      create_purchase: {
-        Args: {
-          p_image_url?: string
-          p_invoice_number?: string
-          p_items: Json
-          p_purchase_date?: string
-          p_source?: string
-          p_supplier_id?: string
-        }
-        Returns: string
-      }
-      create_sale: {
-        Args: {
-          p_customer_name?: string
-          p_items: Json
-          p_payment_method?: Database["public"]["Enums"]["payment_method"]
-          p_source?: string
-        }
-        Returns: string
-      }
+      create_purchase:
+        | {
+            Args: {
+              p_image_url?: string
+              p_invoice_number?: string
+              p_items: Json
+              p_purchase_date?: string
+              p_source?: string
+              p_supplier_id?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_client_token?: string
+              p_image_url?: string
+              p_invoice_number?: string
+              p_items: Json
+              p_notes?: string
+              p_purchase_date?: string
+              p_source?: string
+              p_supplier_id?: string
+            }
+            Returns: string
+          }
+      create_sale:
+        | {
+            Args: {
+              p_customer_name?: string
+              p_items: Json
+              p_payment_method?: Database["public"]["Enums"]["payment_method"]
+              p_source?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_client_token?: string
+              p_customer_name?: string
+              p_items: Json
+              p_payment_method?: Database["public"]["Enums"]["payment_method"]
+              p_source?: string
+            }
+            Returns: string
+          }
       current_business_id: { Args: never; Returns: string }
       current_role_in_business: {
         Args: never
@@ -683,6 +714,16 @@ export type Database = {
       has_business_role: {
         Args: { _roles: Database["public"]["Enums"]["app_role"][] }
         Returns: boolean
+      }
+      inventory_insights: { Args: never; Returns: Json }
+      record_return: {
+        Args: {
+          p_direction: string
+          p_note?: string
+          p_product_id: string
+          p_quantity: number
+        }
+        Returns: number
       }
       seed_demo_data: { Args: never; Returns: Json }
       setup_business: {
@@ -700,6 +741,8 @@ export type Database = {
         | "ADJUSTMENT"
         | "RETURN"
         | "INITIAL_STOCK"
+        | "RETURN_IN"
+        | "RETURN_OUT"
       payment_method: "CASH" | "MOBILE_MONEY" | "BANK" | "OTHER"
     }
     CompositeTypes: {
@@ -835,6 +878,8 @@ export const Constants = {
         "ADJUSTMENT",
         "RETURN",
         "INITIAL_STOCK",
+        "RETURN_IN",
+        "RETURN_OUT",
       ],
       payment_method: ["CASH", "MOBILE_MONEY", "BANK", "OTHER"],
     },
