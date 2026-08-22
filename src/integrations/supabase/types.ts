@@ -660,51 +660,44 @@ export type Database = {
         }
         Returns: number
       }
-      create_purchase:
-        | {
-            Args: {
-              p_image_url?: string
-              p_invoice_number?: string
-              p_items: Json
-              p_purchase_date?: string
-              p_source?: string
-              p_supplier_id?: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_client_token?: string
-              p_image_url?: string
-              p_invoice_number?: string
-              p_items: Json
-              p_notes?: string
-              p_purchase_date?: string
-              p_source?: string
-              p_supplier_id?: string
-            }
-            Returns: string
-          }
-      create_sale:
-        | {
-            Args: {
-              p_customer_name?: string
-              p_items: Json
-              p_payment_method?: Database["public"]["Enums"]["payment_method"]
-              p_source?: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_client_token?: string
-              p_customer_name?: string
-              p_items: Json
-              p_payment_method?: Database["public"]["Enums"]["payment_method"]
-              p_source?: string
-            }
-            Returns: string
-          }
+      create_product: {
+        Args: {
+          p_barcode?: string
+          p_category_id?: string
+          p_initial_stock?: number
+          p_min_stock_level?: number
+          p_name: string
+          p_purchase_price?: number
+          p_selling_price?: number
+          p_sku?: string
+          p_supplier_id?: string
+          p_unit?: string
+        }
+        Returns: string
+      }
+      create_purchase: {
+        Args: {
+          p_client_token?: string
+          p_image_url?: string
+          p_invoice_number?: string
+          p_items: Json
+          p_notes?: string
+          p_purchase_date?: string
+          p_source?: string
+          p_supplier_id?: string
+        }
+        Returns: string
+      }
+      create_sale: {
+        Args: {
+          p_client_token?: string
+          p_customer_name?: string
+          p_items: Json
+          p_payment_method?: Database["public"]["Enums"]["payment_method"]
+          p_source?: string
+        }
+        Returns: string
+      }
       current_business_id: { Args: never; Returns: string }
       current_role_in_business: {
         Args: never
