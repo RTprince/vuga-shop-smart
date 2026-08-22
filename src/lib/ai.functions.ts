@@ -86,12 +86,25 @@ export const interpretVoice = createServerFn({ method: "POST" })
           },
         ],
       });
-      const parsed = parseJson<VoiceAction>(raw);
-      if (!parsed) return { intent: "UNKNOWN", confidence: 0 };
-      return parsed;
+      const parsed = parseJson<VoiceAction & VoiceItem>(raw);
+      if (!parsed) return { intent: "UNKNOWN", items: [], confidence: 0 };
+      // Older prompt shape returned a single product on the root object.
+      const items = Array.isArray(parsed.items) && parsed.items.length > 0
+        ? parsed.items
+        : parsed.product
+          ? [{
+              product: parsed.product,
+              ...(parsed.quantity != null ? { quantity: parsed.quantity } : {}),
+              ...(parsed.unit ? { unit: parsed.unit } : {}),
+              ...(parsed.purchase_price != null ? { purchase_price: parsed.purchase_price } : {}),
+              ...(parsed.selling_price != null ? { selling_price: parsed.selling_price } : {}),
+            }]
+          : [];
+      return { ...parsed, items };
     } catch {
-      return { intent: "UNKNOWN", confidence: 0, clarification: "AI_UNAVAILABLE" };
+      return { intent: "UNKNOWN", items: [], confidence: 0, clarification: "AI_UNAVAILABLE" };
     }
+
   });
 
 export type OcrResult = {
