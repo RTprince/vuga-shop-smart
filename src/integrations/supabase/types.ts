@@ -660,6 +660,21 @@ export type Database = {
         }
         Returns: number
       }
+      create_product: {
+        Args: {
+          p_barcode?: string
+          p_category_id?: string
+          p_initial_stock?: number
+          p_min_stock_level?: number
+          p_name: string
+          p_purchase_price?: number
+          p_selling_price?: number
+          p_sku?: string
+          p_supplier_id?: string
+          p_unit?: string
+        }
+        Returns: string
+      }
       create_purchase:
         | {
             Args: {
