@@ -10,6 +10,7 @@
  * Never write `products.current_stock` directly from a component.
  */
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 export type PaymentMethod = "CASH" | "MOBILE_MONEY" | "BANK" | "OTHER";
 
@@ -26,10 +27,14 @@ export type StockErrorCode =
 
 export class StockError extends Error {
   code: StockErrorCode;
-  product?: string;
-  available?: number;
-  requested?: number;
-  constructor(code: StockErrorCode, message: string, extra?: { product?: string; available?: number; requested?: number }) {
+  product?: string | undefined;
+  available?: number | undefined;
+  requested?: number | undefined;
+  constructor(
+    code: StockErrorCode,
+    message: string,
+    extra?: { product?: string | undefined; available?: number | undefined; requested?: number | undefined },
+  ) {
     super(message);
     this.code = code;
     this.product = extra?.product;
@@ -70,11 +75,11 @@ export async function createSale(input: {
   token: string;
 }): Promise<string> {
   const { data, error } = await supabase.rpc("create_sale", {
-    p_items: input.items as unknown as never,
+    p_items: input.items as unknown as Json,
     p_payment_method: input.paymentMethod ?? "CASH",
-    p_customer_name: input.customerName ?? undefined,
     p_source: input.source ?? "MANUAL",
     p_client_token: input.token,
+    ...(input.customerName ? { p_customer_name: input.customerName } : {}),
   });
   if (error) throw toStockError(error);
   return data as unknown as string;
@@ -91,14 +96,14 @@ export async function createPurchase(input: {
   token: string;
 }): Promise<string> {
   const { data, error } = await supabase.rpc("create_purchase", {
-    p_items: input.items as unknown as never,
-    p_supplier_id: input.supplierId ?? undefined,
-    p_invoice_number: input.invoiceNumber ?? undefined,
-    p_purchase_date: input.purchaseDate ?? undefined,
-    p_image_url: input.imagePath ?? undefined,
+    p_items: input.items as unknown as Json,
     p_source: input.source ?? "MANUAL",
-    p_notes: input.notes ?? undefined,
     p_client_token: input.token,
+    ...(input.supplierId ? { p_supplier_id: input.supplierId } : {}),
+    ...(input.invoiceNumber ? { p_invoice_number: input.invoiceNumber } : {}),
+    ...(input.purchaseDate ? { p_purchase_date: input.purchaseDate } : {}),
+    ...(input.imagePath ? { p_image_url: input.imagePath } : {}),
+    ...(input.notes ? { p_notes: input.notes } : {}),
   });
   if (error) throw toStockError(error);
   return data as unknown as string;
@@ -108,7 +113,7 @@ export async function adjustStock(productId: string, newStock: number, note?: st
   const { data, error } = await supabase.rpc("adjust_stock", {
     p_product_id: productId,
     p_new_stock: newStock,
-    p_note: note ?? undefined,
+    ...(note ? { p_note: note } : {}),
   });
   if (error) throw toStockError(error);
   return Number(data);
@@ -119,7 +124,7 @@ export async function recordReturn(productId: string, quantity: number, directio
     p_product_id: productId,
     p_quantity: quantity,
     p_direction: direction,
-    p_note: note ?? undefined,
+    ...(note ? { p_note: note } : {}),
   });
   if (error) throw toStockError(error);
   return Number(data);
