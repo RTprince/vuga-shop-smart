@@ -1,23 +1,31 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Minus, Plus, Search } from "lucide-react";
+import { Loader2, Minus, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useT } from "@/lib/i18n";
 import { money, qty } from "@/lib/format";
+import { createSale, newToken, toStockError, type PaymentMethod } from "@/lib/stock";
 
 export const Route = createFileRoute("/_authenticated/sales")({ component: SalesPage });
 
-type Line = { product_id: string; name: string; unit_price: number; quantity: number };
+type Line = { product_id: string; name: string; unit_price: number; quantity: number; available: number; unit: string };
+
+const METHODS: PaymentMethod[] = ["CASH", "MOBILE_MONEY", "BANK", "OTHER"];
 
 function SalesPage() {
   const { t } = useT();
   const queryClient = useQueryClient();
   const [term, setTerm] = React.useState("");
   const [lines, setLines] = React.useState<Line[]>([]);
+  const [method, setMethod] = React.useState<PaymentMethod>("CASH");
+  const [customer, setCustomer] = React.useState("");
+  // One idempotency token per cart: retries/double submits collapse into one sale.
+  const tokenRef = React.useRef(newToken());
 
   const products = useQuery({
     queryKey: ["pos-products", term],
@@ -35,18 +43,47 @@ function SalesPage() {
     },
   });
 
-  function add(p: { id: string; name: string; selling_price: number }) {
+  function add(p: { id: string; name: string; selling_price: number; current_stock: number; unit: string }) {
     setLines((prev) => {
       const found = prev.find((l) => l.product_id === p.id);
-      if (found) return prev.map((l) => (l.product_id === p.id ? { ...l, quantity: l.quantity + 1 } : l));
-      return [...prev, { product_id: p.id, name: p.name, unit_price: Number(p.selling_price), quantity: 1 }];
+      const available = Number(p.current_stock);
+      if (found) {
+        if (found.quantity + 1 > available) {
+          toast.error(`${t("insufficientStock")}: ${qty(available)} ${p.unit}`);
+          return prev;
+        }
+        return prev.map((l) => (l.product_id === p.id ? { ...l, quantity: l.quantity + 1, available } : l));
+      }
+      if (available <= 0) {
+        toast.error(t("outOfStockLabel"));
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          product_id: p.id,
+          name: p.name,
+          unit_price: Number(p.selling_price),
+          quantity: 1,
+          available,
+          unit: p.unit,
+        },
+      ];
     });
   }
 
   function bump(id: string, delta: number) {
     setLines((prev) =>
       prev
-        .map((l) => (l.product_id === id ? { ...l, quantity: l.quantity + delta } : l))
+        .map((l) => {
+          if (l.product_id !== id) return l;
+          const next = l.quantity + delta;
+          if (next > l.available) {
+            toast.error(`${t("insufficientStock")}: ${qty(l.available)} ${l.unit}`);
+            return l;
+          }
+          return { ...l, quantity: next };
+        })
         .filter((l) => l.quantity > 0),
     );
   }
@@ -54,21 +91,28 @@ function SalesPage() {
   const total = lines.reduce((sum, l) => sum + l.unit_price * l.quantity, 0);
 
   const checkout = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.rpc("create_sale", {
-        p_items: lines.map((l) => ({ product_id: l.product_id, quantity: l.quantity, unit_price: l.unit_price })),
-        p_payment_method: "CASH",
-        p_source: "MANUAL",
-      });
-      if (error) throw error;
-    },
+    mutationFn: async () =>
+      createSale({
+        items: lines.map((l) => ({ product_id: l.product_id, quantity: l.quantity, unit_price: l.unit_price })),
+        paymentMethod: method,
+        customerName: customer.trim() || null,
+        source: "MANUAL",
+        token: tokenRef.current,
+      }),
     onSuccess: () => {
       toast.success(t("saleDone"));
       setLines([]);
+      setCustomer("");
+      tokenRef.current = newToken();
       void queryClient.invalidateQueries();
     },
-    onError: (e: Error) =>
-      toast.error(e.message.includes("INSUFFICIENT") ? t("insufficientStock") : e.message),
+    onError: (e: Error) => {
+      const err = toStockError(e);
+      if (err.code === "INSUFFICIENT_STOCK")
+        toast.error(`${t("insufficientStock")}: ${err.product} (${err.available})`);
+      else toast.error(err.message);
+      void queryClient.invalidateQueries({ queryKey: ["pos-products"] });
+    },
   });
 
   return (
@@ -84,7 +128,8 @@ function SalesPage() {
             key={p.id}
             type="button"
             onClick={() => add(p)}
-            className="rounded-2xl border bg-card p-3 text-left active:scale-95"
+            disabled={Number(p.current_stock) <= 0}
+            className="rounded-2xl border bg-card p-3 text-left active:scale-95 disabled:opacity-50"
           >
             <p className="text-sm font-semibold leading-tight">{p.name}</p>
             <p className="text-xs text-muted-foreground">
@@ -113,12 +158,34 @@ function SalesPage() {
               <span className="w-24 text-right font-semibold">{money(l.unit_price * l.quantity)}</span>
             </div>
           ))}
+
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="space-y-1">
+              <Label className="text-xs">{t("paymentMethod")}</Label>
+              <select
+                className="h-11 w-full rounded-md border bg-background px-2 text-sm"
+                value={method}
+                onChange={(e) => setMethod(e.target.value as PaymentMethod)}
+              >
+                {METHODS.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{t("customer")}</Label>
+              <Input className="h-11" value={customer} onChange={(e) => setCustomer(e.target.value)} />
+            </div>
+          </div>
+
           <div className="flex items-center justify-between border-t pt-2">
             <span className="font-semibold">{t("total")}</span>
             <span className="text-lg font-bold">{money(total)}</span>
           </div>
           <Button className="h-14 w-full text-base" disabled={checkout.isPending} onClick={() => checkout.mutate()}>
-            {t("confirm")}
+            {checkout.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : t("confirm")}
           </Button>
         </div>
       )}

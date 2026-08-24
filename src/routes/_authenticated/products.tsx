@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useT } from "@/lib/i18n";
-import { useAuth, useCan } from "@/lib/auth";
+import { useCan } from "@/lib/auth";
+import { toStockError } from "@/lib/stock";
 import { money, qty } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/products")({ component: ProductsPage });
@@ -77,7 +78,6 @@ function ProductsPage() {
 
 function NewProductSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { t } = useT();
-  const { membership } = useAuth();
   const queryClient = useQueryClient();
   const [name, setName] = React.useState("");
   const [unit, setUnit] = React.useState("pcs");
@@ -87,16 +87,15 @@ function NewProductSheet({ open, onOpenChange }: { open: boolean; onOpenChange: 
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!membership) throw new Error("no business");
-      const { error } = await supabase.from("products").insert({
-        business_id: membership.business_id,
-        name: name.trim(),
-        unit,
-        purchase_price: Number(purchase || 0),
-        selling_price: Number(selling || 0),
-        current_stock: Number(stock || 0),
+      // Opening stock goes through the stock engine so an INITIAL_STOCK movement is recorded.
+      const { error } = await supabase.rpc("create_product", {
+        p_name: name.trim(),
+        p_unit: unit,
+        p_purchase_price: Number(purchase || 0),
+        p_selling_price: Number(selling || 0),
+        p_initial_stock: Number(stock || 0),
       });
-      if (error) throw error;
+      if (error) throw toStockError(error);
     },
     onSuccess: () => {
       toast.success(t("saved"));
