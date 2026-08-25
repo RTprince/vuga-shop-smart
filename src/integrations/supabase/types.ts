@@ -316,6 +316,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          advice_frequency: string
+          advice_seen_at: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -324,6 +326,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          advice_frequency?: string
+          advice_seen_at?: string | null
           created_at?: string
           full_name?: string | null
           id: string
@@ -332,6 +336,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          advice_frequency?: string
+          advice_seen_at?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -660,6 +666,7 @@ export type Database = {
         }
         Returns: number
       }
+      business_advisor: { Args: never; Returns: Json }
       create_product: {
         Args: {
           p_barcode?: string
