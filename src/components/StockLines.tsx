@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/lib/i18n";
+import { useQuery } from "@tanstack/react-query";
 import { money, qty as fmtQty } from "@/lib/format";
+import { searchProducts, type CatalogueProduct } from "@/lib/stock";
 
 /** One editable transaction line, always bound to a real catalogue product. */
 export type EditableLine = {
@@ -99,5 +101,44 @@ export function LineEditor({
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Lets the user bind an unmatched (spoken) line to a real catalogue product. */
+function ProductPicker({
+  initialTerm,
+  onPick,
+}: {
+  initialTerm: string;
+  onPick: (p: CatalogueProduct) => void;
+}) {
+  const { t } = useT();
+  const [term, setTerm] = React.useState(initialTerm ?? "");
+  const results = useQuery({
+    queryKey: ["product-picker", term],
+    queryFn: () => searchProducts(term, 6),
+  });
+
+  return (
+    <div className="mt-2 space-y-2">
+      <Input
+        className="h-10"
+        placeholder={t("chooseProduct")}
+        value={term}
+        onChange={(e) => setTerm(e.target.value)}
+      />
+      <div className="flex flex-wrap gap-2">
+        {(results.data ?? []).map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => onPick(p)}
+            className="rounded-full border bg-background px-3 py-1 text-xs font-medium active:scale-95"
+          >
+            {p.name}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
