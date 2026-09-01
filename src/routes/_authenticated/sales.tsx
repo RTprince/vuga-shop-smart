@@ -88,6 +88,23 @@ function SalesPage() {
     );
   }
 
+  function setQuantity(id: string, value: number) {
+    setLines((prev) =>
+      prev.map((l) => {
+        if (l.product_id !== id) return l;
+        if (value > l.available) {
+          toast.error(`${t("insufficientStock")}: ${qty(l.available)} ${l.unit}`);
+          return { ...l, quantity: l.available };
+        }
+        return { ...l, quantity: Math.max(0, value) };
+      }),
+    );
+  }
+
+  function setPrice(id: string, value: number) {
+    setLines((prev) => prev.map((l) => (l.product_id === id ? { ...l, unit_price: Math.max(0, value) } : l)));
+  }
+
   const total = lines.reduce((sum, l) => sum + l.unit_price * l.quantity, 0);
 
   const checkout = useMutation({
@@ -150,12 +167,24 @@ function SalesPage() {
                 <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => bump(l.product_id, -1)}>
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="w-6 text-center font-semibold">{l.quantity}</span>
+                <Input
+                  className="h-9 w-14 text-center"
+                  inputMode="decimal"
+                  aria-label={t("quantity")}
+                  value={String(l.quantity)}
+                  onChange={(e) => setQuantity(l.product_id, Number(e.target.value) || 0)}
+                />
                 <Button size="icon" variant="outline" className="h-9 w-9" onClick={() => bump(l.product_id, 1)}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-              <span className="w-24 text-right font-semibold">{money(l.unit_price * l.quantity)}</span>
+              <Input
+                className="h-9 w-24 text-right"
+                inputMode="decimal"
+                aria-label={t("price")}
+                value={String(l.unit_price)}
+                onChange={(e) => setPrice(l.product_id, Number(e.target.value) || 0)}
+              />
             </div>
           ))}
 
@@ -184,8 +213,12 @@ function SalesPage() {
             <span className="font-semibold">{t("total")}</span>
             <span className="text-lg font-bold">{money(total)}</span>
           </div>
-          <Button className="h-14 w-full text-base" disabled={checkout.isPending} onClick={() => checkout.mutate()}>
-            {checkout.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : t("confirm")}
+          <Button className="h-14 w-full text-base" disabled={checkout.isPending || total <= 0 || lines.every((l) => l.quantity <= 0)} onClick={() => checkout.mutate()}>
+            {checkout.isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              `${t("sell")} · ${money(total)}`
+            )}
           </Button>
         </div>
       )}
