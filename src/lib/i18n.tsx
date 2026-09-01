@@ -159,6 +159,25 @@ export const dict: Dict = {
   purchaseDone: { rw: "Ibyaguzwe byanditswe!", en: "Purchase recorded!" },
   productNotMatched: { rw: "Iki gicuruzwa nticyabonetse mu bubiko", en: "This product is not in your catalogue" },
   stockNow: { rw: "Ububiko ubu", en: "Stock now" },
+
+  advisor: { rw: "Inama z'ubucuruzi", en: "Business Advisor" },
+  shopToday: { rw: "Duka ryawe uyu munsi", en: "Your Shop Today" },
+  seeMore: { rw: "Reba byinshi", en: "See more" },
+  refresh: { rw: "Vugurura", en: "Refresh" },
+  adviceSeen: { rw: "Nabyumvise", en: "Got it" },
+  adviceFrequency: { rw: "Inama z'ubucuruzi", en: "Business advice" },
+  daily: { rw: "Buri munsi", en: "Daily" },
+  weekly: { rw: "Buri cyumweru", en: "Weekly" },
+  monthly: { rw: "Buri kwezi", en: "Monthly" },
+  off: { rw: "Ntizigaragare", en: "Off" },
+  lastWeek: { rw: "Icyumweru gishize", en: "Last week" },
+  lastMonth: { rw: "Ukwezi gushize", en: "Last month" },
+  grossProfit30: { rw: "Inyungu (iminsi 30)", en: "Gross profit (30 days)" },
+  listen: { rw: "Umva", en: "Listen" },
+  sell: { rw: "Gurisha", en: "Sell" },
+  chooseProduct: { rw: "Hitamo igicuruzwa", en: "Choose product" },
+  paymentMethod: { rw: "Uburyo bwo kwishyura", en: "Payment method" },
+  noPermission: { rw: "Nta burenganzira ufite kuri iki gikorwa.", en: "You don't have permission for this." },
 };
 
 type Ctx = { lang: Lang; setLang: (l: Lang) => void; t: (k: keyof typeof dict) => string };
