@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, HandCoins, Receipt, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
@@ -11,7 +11,7 @@ import { ADVICE_FREQUENCIES, useAdviceSettings } from "@/lib/advice-settings";
 export const Route = createFileRoute("/_authenticated/more")({ component: MorePage });
 
 function MorePage() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { membership } = useAuth();
   const can = useCan();
   const queryClient = useQueryClient();
@@ -36,6 +36,23 @@ function MorePage() {
         <p className="text-sm text-muted-foreground">{membership?.business.phone ?? ""}</p>
         <p className="mt-1 text-sm text-muted-foreground">{can.role ? t(can.role) : ""}</p>
       </section>
+
+      <nav className="grid grid-cols-2 gap-3">
+        {[
+          { to: "/debtors" as const, icon: HandCoins, rw: "Imyenda", en: "Debtors" },
+          { to: "/expenses" as const, icon: Receipt, rw: "Ibyakoreshejwe", en: "Expenses" },
+          { to: "/reports" as const, icon: BarChart3, rw: "Raporo", en: "Reports" },
+        ].map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            className="flex flex-col gap-2 rounded-3xl border bg-card p-4 font-semibold"
+          >
+            <item.icon className="h-5 w-5 text-primary" />
+            {lang === "rw" ? item.rw : item.en}
+          </Link>
+        ))}
+      </nav>
 
       <Link
         to="/advisor"

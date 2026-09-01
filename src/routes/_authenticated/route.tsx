@@ -3,6 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
+import { useAccess } from "@/lib/access";
+import { AccessBlocked } from "@/components/AccessBlocked";
 import { useT } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,10 +24,15 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthedLayout() {
   const { membership, membershipLoading } = useAuth();
+  const access = useAccess();
   if (membershipLoading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">...</div>;
   }
   if (!membership) return <BusinessSetup />;
+  if (access.isLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">...</div>;
+  }
+  if (access.data && !access.data.access_ok) return <AccessBlocked access={access.data} />;
   return (
     <AppShell>
       <Outlet />

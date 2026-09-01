@@ -12,10 +12,10 @@ import { useAuth } from "@/lib/auth";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Injira | DukaSmart" },
-      { name: "description", content: "Injira muri DukaSmart ucunge duka ryawe: ibicuruzwa, igurisha n'ububiko." },
-      { property: "og:title", content: "Injira | DukaSmart" },
-      { property: "og:description", content: "Injira muri DukaSmart ucunge duka ryawe." },
+      { title: "Injira | RTFlow" },
+      { name: "description", content: "Injira muri RTFlow ucunge duka ryawe: ibicuruzwa, igurisha n'ububiko." },
+      { property: "og:title", content: "Injira | RTFlow" },
+      { property: "og:description", content: "Injira muri RTFlow ucunge duka ryawe." },
     ],
   }),
   component: AuthPage,
@@ -69,7 +69,7 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md space-y-5 rounded-3xl border bg-card p-6 shadow-sm">
         <div>
-          <h1 className="text-3xl font-extrabold text-primary">DukaSmart</h1>
+          <h1 className="text-3xl font-extrabold text-primary">RTFlow</h1>
           <p className="text-sm text-muted-foreground">{t("tagline")}</p>
         </div>
         <form onSubmit={submit} className="space-y-4">
