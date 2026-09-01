@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      analyst_messages: {
+        Row: {
+          business_id: string
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id?: string
+        }
+        Update: {
+          business_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analyst_messages_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -94,9 +129,13 @@ export type Database = {
           created_by: string
           currency: string
           default_min_stock: number
+          employee_mode: boolean
           id: string
           name: string
           phone: string | null
+          subscription_status: string
+          trial_ends_at: string
+          trial_started_at: string
           updated_at: string
         }
         Insert: {
@@ -105,9 +144,13 @@ export type Database = {
           created_by?: string
           currency?: string
           default_min_stock?: number
+          employee_mode?: boolean
           id?: string
           name: string
           phone?: string | null
+          subscription_status?: string
+          trial_ends_at?: string
+          trial_started_at?: string
           updated_at?: string
         }
         Update: {
@@ -116,12 +159,174 @@ export type Database = {
           created_by?: string
           currency?: string
           default_min_stock?: number
+          employee_mode?: boolean
           id?: string
           name?: string
           phone?: string | null
+          subscription_status?: string
+          trial_ends_at?: string
+          trial_started_at?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      debt_payments: {
+        Row: {
+          amount: number
+          business_id: string
+          created_at: string
+          created_by: string
+          debt_id: string
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          note: string | null
+        }
+        Insert: {
+          amount: number
+          business_id: string
+          created_at?: string
+          created_by?: string
+          debt_id: string
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          note?: string | null
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          created_at?: string
+          created_by?: string
+          debt_id?: string
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debt_payments_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debt_payments_debt_id_fkey"
+            columns: ["debt_id"]
+            isOneToOne: false
+            referencedRelation: "debts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      debts: {
+        Row: {
+          amount: number
+          amount_paid: number
+          business_id: string
+          created_at: string
+          created_by: string
+          customer_name: string
+          due_date: string | null
+          id: string
+          note: string | null
+          phone: string | null
+          sale_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          amount_paid?: number
+          business_id: string
+          created_at?: string
+          created_by?: string
+          customer_name: string
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          phone?: string | null
+          sale_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_paid?: number
+          business_id?: string
+          created_at?: string
+          created_by?: string
+          customer_name?: string
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          phone?: string | null
+          sale_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "debts_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          business_id: string
+          category: string
+          created_at: string
+          created_by: string
+          expense_date: string
+          id: string
+          name: string
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          business_id: string
+          category?: string
+          created_at?: string
+          created_by?: string
+          expense_date?: string
+          id?: string
+          name: string
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          business_id?: string
+          category?: string
+          created_at?: string
+          created_by?: string
+          expense_date?: string
+          id?: string
+          name?: string
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory_movements: {
         Row: {
@@ -196,6 +401,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      platform_settings: {
+        Row: {
+          id: boolean
+          owner_email: string | null
+          owner_phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          owner_email?: string | null
+          owner_phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          owner_email?: string | null
+          owner_phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       product_categories: {
         Row: {
@@ -519,34 +760,40 @@ export type Database = {
       }
       sales: {
         Row: {
+          amount_paid: number
           business_id: string
           client_token: string | null
           created_at: string
           customer_name: string | null
           id: string
           payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_status: string
           sold_by: string
           source: string
           total_amount: number
         }
         Insert: {
+          amount_paid?: number
           business_id: string
           client_token?: string | null
           created_at?: string
           customer_name?: string | null
           id?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_status?: string
           sold_by?: string
           source?: string
           total_amount?: number
         }
         Update: {
+          amount_paid?: number
           business_id?: string
           client_token?: string | null
           created_at?: string
           customer_name?: string | null
           id?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_status?: string
           sold_by?: string
           source?: string
           total_amount?: number
@@ -655,6 +902,15 @@ export type Database = {
         Args: { p_new_stock: number; p_note?: string; p_product_id: string }
         Returns: number
       }
+      admin_list_businesses: { Args: { p_search?: string }; Returns: Json }
+      admin_set_access: {
+        Args: { p_business_id: string; p_extra_days?: number; p_status: string }
+        Returns: Json
+      }
+      admin_update_settings: {
+        Args: { p_owner_email: string; p_owner_phone?: string }
+        Returns: Json
+      }
       apply_movement: {
         Args: {
           p_note?: string
@@ -666,7 +922,10 @@ export type Database = {
         }
         Returns: number
       }
+      business_access_ok: { Args: never; Returns: boolean }
+      business_access_state: { Args: never; Returns: Json }
       business_advisor: { Args: never; Returns: Json }
+      business_report: { Args: { p_period?: string }; Returns: Json }
       create_product: {
         Args: {
           p_barcode?: string
@@ -697,10 +956,15 @@ export type Database = {
       }
       create_sale: {
         Args: {
+          p_amount_paid?: number
           p_client_token?: string
           p_customer_name?: string
+          p_debtor_name?: string
+          p_debtor_phone?: string
+          p_due_date?: string
           p_items: Json
           p_payment_method?: Database["public"]["Enums"]["payment_method"]
+          p_payment_status?: string
           p_source?: string
         }
         Returns: string
@@ -716,6 +980,26 @@ export type Database = {
         Returns: boolean
       }
       inventory_insights: { Args: never; Returns: Json }
+      is_platform_admin: { Args: never; Returns: boolean }
+      record_debt_payment: {
+        Args: {
+          p_amount: number
+          p_debt_id: string
+          p_method?: Database["public"]["Enums"]["payment_method"]
+          p_note?: string
+        }
+        Returns: Json
+      }
+      record_expense: {
+        Args: {
+          p_amount: number
+          p_category?: string
+          p_date?: string
+          p_name: string
+          p_note?: string
+        }
+        Returns: string
+      }
       record_return: {
         Args: {
           p_direction: string
