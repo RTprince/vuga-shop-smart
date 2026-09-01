@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ShoppingCart, Truck, Camera, AlertTriangle } from "lucide-react";
+import { ShoppingCart, Truck, Camera, AlertTriangle, Lightbulb } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useT } from "@/lib/i18n";
 import { money, dateTime } from "@/lib/format";
+import { AdviceCard } from "@/components/AdviceCard";
+import { buildInsights, fetchAdvisor, sortInsights, visibleInsights } from "@/lib/advisor";
+import { useAdviceSettings } from "@/lib/advice-settings";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({ component: Dashboard });
 
