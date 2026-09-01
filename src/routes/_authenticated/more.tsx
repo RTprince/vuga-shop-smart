@@ -15,6 +15,7 @@ function MorePage() {
   const { membership } = useAuth();
   const can = useCan();
   const queryClient = useQueryClient();
+  const { settings, setFrequency } = useAdviceSettings();
 
   const seed = useMutation({
     mutationFn: async () => {
