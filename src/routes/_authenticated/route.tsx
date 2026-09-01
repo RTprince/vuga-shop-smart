@@ -22,10 +22,15 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthedLayout() {
   const { membership, membershipLoading } = useAuth();
+  const access = useAccess();
   if (membershipLoading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">...</div>;
   }
   if (!membership) return <BusinessSetup />;
+  if (access.isLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">...</div>;
+  }
+  if (access.data && !access.data.access_ok) return <AccessBlocked access={access.data} />;
   return (
     <AppShell>
       <Outlet />
