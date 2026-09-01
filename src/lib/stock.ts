@@ -23,6 +23,7 @@ export type StockErrorCode =
   | "EMPTY_CART"
   | "INVALID_QUANTITY"
   | "NO_BUSINESS"
+  | "ACCESS_EXPIRED"
   | "UNKNOWN";
 
 export class StockError extends Error {
@@ -55,7 +56,7 @@ export function toStockError(err: unknown): StockError {
       requested: Number(requested),
     });
   }
-  for (const code of ["PRODUCT_NOT_FOUND", "FORBIDDEN", "EMPTY_CART", "INVALID_QUANTITY", "NO_BUSINESS"] as const) {
+  for (const code of ["PRODUCT_NOT_FOUND", "FORBIDDEN", "EMPTY_CART", "INVALID_QUANTITY", "NO_BUSINESS", "ACCESS_EXPIRED"] as const) {
     if (message.includes(code)) return new StockError(code, message);
   }
   return new StockError("UNKNOWN", message);
@@ -67,19 +68,31 @@ export function newToken() {
   return `t-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+export type PaymentStatus = "PAID" | "PARTIAL" | "CREDIT";
+
 export async function createSale(input: {
   items: StockLine[];
   paymentMethod?: PaymentMethod;
   customerName?: string | null;
   source?: string;
   token: string;
+  paymentStatus?: PaymentStatus;
+  amountPaid?: number | null;
+  debtorName?: string | null;
+  debtorPhone?: string | null;
+  dueDate?: string | null;
 }): Promise<string> {
   const { data, error } = await supabase.rpc("create_sale", {
     p_items: input.items as unknown as Json,
     p_payment_method: input.paymentMethod ?? "CASH",
     p_source: input.source ?? "MANUAL",
     p_client_token: input.token,
+    p_payment_status: input.paymentStatus ?? "PAID",
     ...(input.customerName ? { p_customer_name: input.customerName } : {}),
+    ...(input.amountPaid != null ? { p_amount_paid: input.amountPaid } : {}),
+    ...(input.debtorName ? { p_debtor_name: input.debtorName } : {}),
+    ...(input.debtorPhone ? { p_debtor_phone: input.debtorPhone } : {}),
+    ...(input.dueDate ? { p_due_date: input.dueDate } : {}),
   });
   if (error) throw toStockError(error);
   return data as unknown as string;
