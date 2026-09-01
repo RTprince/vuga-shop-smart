@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Lightbulb } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 import { useAuth, useCan, signOutEverywhere } from "@/lib/auth";
+import { ADVICE_FREQUENCIES, useAdviceSettings } from "@/lib/advice-settings";
 
 export const Route = createFileRoute("/_authenticated/more")({ component: MorePage });
 
