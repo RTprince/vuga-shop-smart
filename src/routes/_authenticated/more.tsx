@@ -37,6 +37,33 @@ function MorePage() {
         <p className="mt-1 text-sm text-muted-foreground">{can.role ? t(can.role) : ""}</p>
       </section>
 
+      <Link
+        to="/advisor"
+        className="flex items-center gap-3 rounded-3xl border bg-card p-4 font-semibold"
+      >
+        <Lightbulb className="h-5 w-5 text-primary" />
+        {t("advisor")}
+      </Link>
+
+      <section className="rounded-3xl border bg-card p-4">
+        <h3 className="font-bold">{t("adviceFrequency")}</h3>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {ADVICE_FREQUENCIES.map((f) => {
+            const active = (settings?.frequency ?? "daily") === f;
+            return (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFrequency.mutate(f)}
+                className={`h-12 rounded-2xl border text-sm font-semibold ${active ? "border-primary bg-primary text-primary-foreground" : "bg-background"}`}
+              >
+                {t(f)}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       {can.manageProducts && (
         <Button variant="outline" className="h-14 w-full" disabled={seed.isPending} onClick={() => seed.mutate()}>
           {t("importNow")}
