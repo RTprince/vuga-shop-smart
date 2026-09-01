@@ -170,18 +170,74 @@ export async function fetchMovements(productId: string, limit = 50): Promise<Mov
   return (data ?? []) as Movement[];
 }
 
-/** Matches a spoken/typed product name against the catalogue. Returns null when unsure. */
-export async function matchProduct(name: string) {
+export type CatalogueProduct = {
+  id: string;
+  name: string;
+  unit: string;
+  current_stock: number;
+  selling_price: number;
+  purchase_price: number;
+  times_sold?: number;
+};
+
+const SELECT_PRODUCT = "id, name, unit, current_stock, selling_price, purchase_price, times_sold";
+
+/** Free-text catalogue search used by the POS and the voice product picker. */
+export async function searchProducts(term: string, limit = 20): Promise<CatalogueProduct[]> {
+  const cleaned = term.trim();
+  let q = supabase.from("products").select(SELECT_PRODUCT).eq("is_active", true);
+  if (cleaned) q = q.ilike("name", `%${cleaned}%`);
+  const { data } = await q.order("times_sold", { ascending: false }).limit(limit);
+  return (data ?? []) as CatalogueProduct[];
+}
+
+const STOP = new Set(["the", "a", "of", "na", "ya", "y", "cya", "mu", "ku", "za", "bya"]);
+
+function tokens(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !STOP.has(w));
+}
+
+/**
+ * Matches a spoken/typed product name against the catalogue.
+ * 1. exact-ish substring match, 2. word-overlap match. Returns null when unsure,
+ * which makes the UI ask the user to pick the product instead of guessing.
+ */
+export async function matchProduct(name: string): Promise<CatalogueProduct | null> {
   const cleaned = name.trim();
   if (!cleaned) return null;
+
+  const direct = await searchProducts(cleaned, 5);
+  if (direct.length > 0) return direct[0] ?? null;
+
+  const words = tokens(cleaned);
+  if (words.length === 0) return null;
+
   const { data } = await supabase
     .from("products")
-    .select("id, name, unit, current_stock, selling_price, purchase_price")
+    .select(SELECT_PRODUCT)
     .eq("is_active", true)
-    .ilike("name", `%${cleaned}%`)
+    .or(words.map((w) => `name.ilike.%${w}%`).join(","))
     .order("times_sold", { ascending: false })
-    .limit(1);
-  return data?.[0] ?? null;
+    .limit(25);
+
+  const candidates = (data ?? []) as CatalogueProduct[];
+  let best: CatalogueProduct | null = null;
+  let bestScore = 0;
+  for (const c of candidates) {
+    const cw = tokens(c.name);
+    const hits = words.filter((w) => cw.some((x) => x.startsWith(w) || w.startsWith(x))).length;
+    const score = hits / words.length + Math.min(Number(c.times_sold ?? 0), 50) / 1000;
+    if (hits > 0 && score > bestScore) {
+      bestScore = score;
+      best = c;
+    }
+  }
+  // Require at least half of the spoken words to match before auto-selecting.
+  return bestScore >= 0.5 ? best : null;
 }
 
 export function stockStatus(current: number, min: number): "OUT" | "LOW" | "OK" {

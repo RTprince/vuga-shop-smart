@@ -51,6 +51,20 @@ export function LineEditor({
               ) : (
                 <p className="text-xs text-destructive">{t("productNotMatched")}</p>
               )}
+              {!l.product_id && (
+                <ProductPicker
+                  initialTerm={l.spoken ?? l.name}
+                  onPick={(p) =>
+                    patch(l.key, {
+                      product_id: p.id,
+                      name: p.name,
+                      unit: p.unit,
+                      current_stock: Number(p.current_stock),
+                      unit_price: l.unit_price || Number(p.selling_price),
+                    })
+                  }
+                />
+              )}
             </div>
             <Button
               size="icon"

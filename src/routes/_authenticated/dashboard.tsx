@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ShoppingCart, Truck, Camera, AlertTriangle } from "lucide-react";
+import { ShoppingCart, Truck, Camera, AlertTriangle, Lightbulb } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useT } from "@/lib/i18n";
 import { money, dateTime } from "@/lib/format";
+import { AdviceCard } from "@/components/AdviceCard";
+import { buildInsights, fetchAdvisor, sortInsights, visibleInsights } from "@/lib/advisor";
+import { useAdviceSettings } from "@/lib/advice-settings";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({ component: Dashboard });
 
@@ -18,7 +21,15 @@ type Summary = {
 };
 
 function Dashboard() {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const { settings } = useAdviceSettings();
+
+  const advisor = useQuery({ queryKey: ["business-advisor"], queryFn: fetchAdvisor });
+  const shopToday = visibleInsights(
+    sortInsights(buildInsights(advisor.data, lang)),
+    settings?.frequency ?? "daily",
+    settings?.seenAt ?? null,
+  ).slice(0, 3);
 
   const summary = useQuery({
     queryKey: ["dashboard-summary"],
@@ -74,6 +85,23 @@ function Dashboard() {
           <span className="font-semibold leading-tight">{t("takePhoto")}</span>
         </Link>
       </div>
+
+      {shopToday.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 font-bold">
+              <Lightbulb className="h-5 w-5 text-primary" />
+              {t("shopToday")}
+            </h2>
+            <Link to="/advisor" className="text-sm font-semibold text-primary">
+              {t("seeMore")}
+            </Link>
+          </div>
+          {shopToday.map((i) => (
+            <AdviceCard key={i.id} insight={i} />
+          ))}
+        </section>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <Stat label={t("todaySales")} value={money(s?.today_sales ?? 0)} />
