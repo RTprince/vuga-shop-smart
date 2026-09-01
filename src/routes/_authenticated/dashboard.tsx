@@ -21,7 +21,15 @@ type Summary = {
 };
 
 function Dashboard() {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const { settings } = useAdviceSettings();
+
+  const advisor = useQuery({ queryKey: ["business-advisor"], queryFn: fetchAdvisor });
+  const shopToday = visibleInsights(
+    sortInsights(buildInsights(advisor.data, lang)),
+    settings?.frequency ?? "daily",
+    settings?.seenAt ?? null,
+  ).slice(0, 3);
 
   const summary = useQuery({
     queryKey: ["dashboard-summary"],
