@@ -12,6 +12,7 @@ import { useT } from "@/lib/i18n";
 import { money } from "@/lib/format";
 import { interpretVoice, type VoiceAction } from "@/lib/ai.functions";
 import { browserSpeech } from "@/lib/speech";
+import { tts } from "@/lib/tts";
 import { LineEditor, type EditableLine } from "@/components/StockLines";
 import { createPurchase, createSale, matchProduct, newToken, toStockError } from "@/lib/stock";
 
@@ -137,6 +138,8 @@ export function VoiceSheet({ open, onOpenChange }: { open: boolean; onOpenChange
     },
     onSuccess: (msg) => {
       toast.success(msg);
+      // Spoken answers help users who read slowly; uses the real browser voice engine.
+      if (tts.isSupported()) tts.speak(msg, lang);
       void queryClient.invalidateQueries();
       onOpenChange(false);
     },
@@ -244,7 +247,14 @@ export function VoiceSheet({ open, onOpenChange }: { open: boolean; onOpenChange
               </div>
             </div>
           )}
-          {unknown && <p className="rounded-2xl bg-muted p-4 text-center text-sm">{t("voiceNotUnderstood")}</p>}
+          {unknown && (
+            <p className="rounded-2xl bg-muted p-4 text-center text-sm">
+              {interpretMutation.data?.action.clarification &&
+              interpretMutation.data.action.clarification !== "AI_UNAVAILABLE"
+                ? interpretMutation.data.action.clarification
+                : t("voiceNotUnderstood")}
+            </p>
+          )}
         </div>
       </SheetContent>
     </Sheet>
