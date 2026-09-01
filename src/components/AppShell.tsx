@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background pb-28">
       <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-card/95 px-4 py-3 backdrop-blur">
         <div>
-          <p className="text-xs text-muted-foreground">DukaSmart</p>
+          <p className="text-xs text-muted-foreground">RTFlow</p>
           <h1 className="text-base font-bold leading-tight">{membership?.business.name ?? "..."}</h1>
         </div>
         <div className="flex items-center gap-1">

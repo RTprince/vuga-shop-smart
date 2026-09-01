@@ -6,13 +6,13 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "DukaSmart — Gucunga duka ryawe byoroshye" },
+      { title: "RTFlow — Gucunga duka ryawe byoroshye" },
       {
         name: "description",
         content:
-          "DukaSmart ifasha ba nyiri amaduka mu Rwanda gucunga ibicuruzwa, igurisha, ibyaguzwe n'ububiko — ukoresheje ijwi, barcode n'amafoto.",
+          "RTFlow ifasha ba nyiri amaduka mu Rwanda gucunga ibicuruzwa, igurisha, ibyaguzwe n'ububiko — ukoresheje ijwi, barcode n'amafoto.",
       },
-      { property: "og:title", content: "DukaSmart — Gucunga duka ryawe byoroshye" },
+      { property: "og:title", content: "RTFlow — Gucunga duka ryawe byoroshye" },
       {
         property: "og:description",
         content: "Ibicuruzwa, igurisha, ibyaguzwe n'ububiko — byoroshye, mu Kinyarwanda.",
@@ -34,7 +34,7 @@ function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <header className="flex items-center justify-between px-5 py-4">
-        <span className="text-xl font-extrabold text-primary">DukaSmart</span>
+        <span className="text-xl font-extrabold text-primary">RTFlow</span>
         <Button variant="ghost" size="sm" onClick={() => setLang(lang === "rw" ? "en" : "rw")}>
           {lang.toUpperCase()}
         </Button>

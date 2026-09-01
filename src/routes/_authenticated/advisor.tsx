@@ -12,12 +12,12 @@ export const Route = createFileRoute("/_authenticated/advisor")({
   component: AdvisorPage,
   head: () => ({
     meta: [
-      { title: "Business Advisor | DukaSmart" },
+      { title: "Business Advisor | RTFlow" },
       {
         name: "description",
         content: "Simple, data-based advice about your shop's sales, profit and stock.",
       },
-      { property: "og:title", content: "Business Advisor | DukaSmart" },
+      { property: "og:title", content: "Business Advisor | RTFlow" },
       { property: "og:description", content: "Simple, data-based advice about your shop's sales, profit and stock." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

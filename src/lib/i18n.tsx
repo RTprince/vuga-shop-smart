@@ -5,7 +5,7 @@ export type Lang = "rw" | "en";
 type Dict = Record<string, { rw: string; en: string }>;
 
 export const dict: Dict = {
-  appName: { rw: "DukaSmart", en: "DukaSmart" },
+  appName: { rw: "RTFlow", en: "RTFlow" },
   tagline: {
     rw: "Ubucuruzi bwawe mu mufuka wawe",
     en: "Your shop, simply managed",
