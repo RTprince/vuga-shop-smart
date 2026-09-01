@@ -86,6 +86,23 @@ function Dashboard() {
         </Link>
       </div>
 
+      {shopToday.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 font-bold">
+              <Lightbulb className="h-5 w-5 text-primary" />
+              {t("shopToday")}
+            </h2>
+            <Link to="/advisor" className="text-sm font-semibold text-primary">
+              {t("seeMore")}
+            </Link>
+          </div>
+          {shopToday.map((i) => (
+            <AdviceCard key={i.id} insight={i} />
+          ))}
+        </section>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <Stat label={t("todaySales")} value={money(s?.today_sales ?? 0)} />
         <Stat label={t("todayPurchases")} value={money(s?.today_purchases ?? 0)} />
